@@ -21,6 +21,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Base URL Configuration
-define('BASE_URL', 'http://localhost/crop-management-system/');
+// Base URL Configuration - CHANGE THIS TO MATCH YOUR FOLDER NAME
+define('BASE_URL', 'http://localhost/crop_portal/');
 ?>

@@ -15,10 +15,26 @@
     height: 100vh;
     left: 0;
     top: 0;
-    overflow-y: auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s;
     z-index: 1000;
+}
+
+/* Hide scrollbar for all browsers */
+.sidebar::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.sidebar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .sidebar-header {

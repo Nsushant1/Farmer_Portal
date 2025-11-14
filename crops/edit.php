@@ -1,13 +1,15 @@
 <?php
+// Set page info
+$page_title = "Edit Crop";
+$current_page = "crops";
+$additional_css = "crop.css";
+
+// Get database connection first (before sidebar include)
 require_once '../includes/db-config.php';
 require_once '../includes/functions.php';
-
-// Check if user is logged in
 requireLogin();
 
 $user_id = $_SESSION['user_id'];
-$user_name = $_SESSION['full_name'];
-$first_letter = strtoupper(substr($user_name, 0, 1));
 
 // Get crop ID
 $crop_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -33,7 +35,10 @@ if ($result->num_rows === 0) {
 $crop = $result->fetch_assoc();
 $stmt->close();
 
-// Get crop count
+// Now include sidebar (it will use the already established connection)
+// Set variables before sidebar include
+$user_name = $_SESSION['full_name'];
+$first_letter = strtoupper(substr($user_name, 0, 1));
 $crop_count_query = mysqli_query($conn, "SELECT COUNT(*) as total FROM crops WHERE user_id = $user_id");
 $crop_count = mysqli_fetch_assoc($crop_count_query)['total'];
 ?>
@@ -42,7 +47,8 @@ $crop_count = mysqli_fetch_assoc($crop_count_query)['total'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Crop - Crop Management System</title>
+    <title><?php echo $page_title; ?> - Crop Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
     <link rel="stylesheet" href="../assets/css/crop.css">
@@ -53,7 +59,7 @@ $crop_count = mysqli_fetch_assoc($crop_count_query)['total'];
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="../index.php" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">🌾</div>
+                    <div class="sidebar-logo-icon"><i class="fas fa-seedling"></i></div>
                     <div class="sidebar-logo-text">
                         <h2>CropManage</h2>
                         <p>Farm Management System</p>
@@ -72,14 +78,14 @@ $crop_count = mysqli_fetch_assoc($crop_count_query)['total'];
             <nav>
                 <ul class="sidebar-menu">
                     <li class="menu-item">
-                        <a href="../dashboard/" class="menu-link">
-                            <span class="menu-icon">📊</span>
+                        <a href="../dashboard/" class="menu-link <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
+                            <span class="menu-icon"><i class="fas fa-chart-line"></i></span>
                             <span class="menu-text">Dashboard</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="index.php" class="menu-link active">
-                            <span class="menu-icon">🌾</span>
+                        <a href="../crops/" class="menu-link <?php echo ($current_page == 'crops') ? 'active' : ''; ?>">
+                            <span class="menu-icon"><i class="fas fa-leaf"></i></span>
                             <span class="menu-text">My Crops</span>
                             <?php if($crop_count > 0): ?>
                                 <span class="menu-badge"><?php echo $crop_count; ?></span>
@@ -87,124 +93,115 @@ $crop_count = mysqli_fetch_assoc($crop_count_query)['total'];
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="add.php" class="menu-link">
-                            <span class="menu-icon">➕</span>
+                        <a href="../crops/add.php" class="menu-link <?php echo ($current_page == 'add-crop') ? 'active' : ''; ?>">
+                            <span class="menu-icon"><i class="fas fa-plus-circle"></i></span>
                             <span class="menu-text">Add Crop</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="../dashboard/profile.php" class="menu-link">
-                            <span class="menu-icon">👤</span>
+                        <a href="../dashboard/profile.php" class="menu-link <?php echo ($current_page == 'profile') ? 'active' : ''; ?>">
+                            <span class="menu-icon"><i class="fas fa-user"></i></span>
                             <span class="menu-text">Profile</span>
                         </a>
                     </li>
                     <li class="menu-item">
                         <a href="../auth/logout.php" class="menu-link">
-                            <span class="menu-icon">🚪</span>
+                            <span class="menu-icon"><i class="fas fa-sign-out-alt"></i></span>
                             <span class="menu-text">Logout</span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </aside>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>Edit Crop <i class="fas fa-edit"></i></h1>
+            <p>Update crop information</p>
+        </div>
         
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="form-card">
-                <div class="form-header">
-                    <h1>Edit Crop ✏️</h1>
-                    <p>Update crop information</p>
+        <form method="POST" action="process-crop.php" id="editCropForm">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="crop_id" value="<?php echo $crop['id']; ?>">
+            
+            <div class="form-grid">
+                <div>
+                    <label class="form-label"><i class="fas fa-leaf"></i> Crop Name <span>*</span></label>
+                    <input type="text" name="crop_name" class="form-input" value="<?php echo htmlspecialchars($crop['crop_name']); ?>" required>
                 </div>
                 
-                <form method="POST" action="process-crop.php" id="editCropForm">
-                    <input type="hidden" name="action" value="edit">
-                    <input type="hidden" name="crop_id" value="<?php echo $crop['id']; ?>">
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="form-label">Crop Name <span>*</span></label>
-                            <input type="text" name="crop_name" class="form-input" value="<?php echo htmlspecialchars($crop['crop_name']); ?>" required>
-                        </div>
-                        
-                        <div>
-                            <label class="form-label">Crop Type <span>*</span></label>
-                            <select name="crop_type" class="form-input" required>
-                                <option value="">Select Type</option>
-                                <option value="Cereal" <?php echo $crop['crop_type'] == 'Cereal' ? 'selected' : ''; ?>>Cereal</option>
-                                <option value="Vegetable" <?php echo $crop['crop_type'] == 'Vegetable' ? 'selected' : ''; ?>>Vegetable</option>
-                                <option value="Fruit" <?php echo $crop['crop_type'] == 'Fruit' ? 'selected' : ''; ?>>Fruit</option>
-                                <option value="Pulse" <?php echo $crop['crop_type'] == 'Pulse' ? 'selected' : ''; ?>>Pulse</option>
-                                <option value="Oilseed" <?php echo $crop['crop_type'] == 'Oilseed' ? 'selected' : ''; ?>>Oilseed</option>
-                                <option value="Cash Crop" <?php echo $crop['crop_type'] == 'Cash Crop' ? 'selected' : ''; ?>>Cash Crop</option>
-                                <option value="Other" <?php echo $crop['crop_type'] == 'Other' ? 'selected' : ''; ?>>Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="form-label">Planting Date <span>*</span></label>
-                            <input type="date" name="planting_date" class="form-input" value="<?php echo $crop['planting_date']; ?>" required>
-                        </div>
-                        
-                        <div>
-                            <label class="form-label">Expected Harvest Date <span>*</span></label>
-                            <input type="date" name="expected_harvest_date" class="form-input" value="<?php echo $crop['expected_harvest_date']; ?>" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="form-label">Area (in Acres) <span>*</span></label>
-                            <input type="number" name="area_in_acres" class="form-input" value="<?php echo $crop['area_in_acres']; ?>" step="0.01" min="0" required>
-                        </div>
-                        
-                        <div>
-                            <label class="form-label">Status <span>*</span></label>
-                            <select name="status" class="form-input" required>
-                                <option value="planted" <?php echo $crop['status'] == 'planted' ? 'selected' : ''; ?>>Planted</option>
-                                <option value="growing" <?php echo $crop['status'] == 'growing' ? 'selected' : ''; ?>>Growing</option>
-                                <option value="harvested" <?php echo $crop['status'] == 'harvested' ? 'selected' : ''; ?>>Harvested</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-grid form-grid-full">
-                        <div>
-                            <label class="form-label">Notes (Optional)</label>
-                            <textarea name="notes" class="form-input" rows="4"><?php echo htmlspecialchars($crop['notes']); ?></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <a href="index.php" class="btn-cancel">Cancel</a>
-                        <button type="submit" class="btn-submit">Update Crop</button>
-                    </div>
-                </form>
+                <div>
+                    <label class="form-label"><i class="fas fa-list"></i> Crop Type <span>*</span></label>
+                    <select name="crop_type" class="form-input" required>
+                        <option value="">Select Type</option>
+                        <option value="Cereal" <?php echo $crop['crop_type'] == 'Cereal' ? 'selected' : ''; ?>>Cereal</option>
+                        <option value="Vegetable" <?php echo $crop['crop_type'] == 'Vegetable' ? 'selected' : ''; ?>>Vegetable</option>
+                        <option value="Fruit" <?php echo $crop['crop_type'] == 'Fruit' ? 'selected' : ''; ?>>Fruit</option>
+                        <option value="Pulse" <?php echo $crop['crop_type'] == 'Pulse' ? 'selected' : ''; ?>>Pulse</option>
+                        <option value="Oilseed" <?php echo $crop['crop_type'] == 'Oilseed' ? 'selected' : ''; ?>>Oilseed</option>
+                        <option value="Cash Crop" <?php echo $crop['crop_type'] == 'Cash Crop' ? 'selected' : ''; ?>>Cash Crop</option>
+                        <option value="Other" <?php echo $crop['crop_type'] == 'Other' ? 'selected' : ''; ?>>Other</option>
+                    </select>
+                </div>
             </div>
-        </main>
-    </div>
-    
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
-    
-    <script src="../assets/js/main.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-        
-        // Form validation
-        document.getElementById('editCropForm').addEventListener('submit', function(e) {
-            const plantingDate = new Date(document.querySelector('input[name="planting_date"]').value);
-            const harvestDate = new Date(document.querySelector('input[name="expected_harvest_date"]').value);
             
-            if (harvestDate <= plantingDate) {
-                e.preventDefault();
-                alert('Harvest date must be after planting date!');
-                return false;
-            }
-        });
-    </script>
-</body>
-</html>
+            <div class="form-grid">
+                <div>
+                    <label class="form-label"><i class="fas fa-calendar-alt"></i> Planting Date <span>*</span></label>
+                    <input type="date" name="planting_date" class="form-input" value="<?php echo $crop['planting_date']; ?>" required>
+                </div>
+                
+                <div>
+                    <label class="form-label"><i class="fas fa-calendar-check"></i> Expected Harvest Date <span>*</span></label>
+                    <input type="date" name="expected_harvest_date" class="form-input" value="<?php echo $crop['expected_harvest_date']; ?>" required>
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div>
+                    <label class="form-label"><i class="fas fa-ruler-combined"></i> Area (in Acres) <span>*</span></label>
+                    <input type="number" name="area_in_acres" class="form-input" value="<?php echo $crop['area_in_acres']; ?>" step="0.01" min="0" required>
+                </div>
+                
+                <div>
+                    <label class="form-label"><i class="fas fa-info-circle"></i> Status <span>*</span></label>
+                    <select name="status" class="form-input" required>
+                        <option value="planted" <?php echo $crop['status'] == 'planted' ? 'selected' : ''; ?>>Planted</option>
+                        <option value="growing" <?php echo $crop['status'] == 'growing' ? 'selected' : ''; ?>>Growing</option>
+                        <option value="harvested" <?php echo $crop['status'] == 'harvested' ? 'selected' : ''; ?>>Harvested</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-grid form-grid-full">
+                <div>
+                    <label class="form-label"><i class="fas fa-sticky-note"></i> Notes (Optional)</label>
+                    <textarea name="notes" class="form-input" rows="4"><?php echo htmlspecialchars($crop['notes']); ?></textarea>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <a href="index.php" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Update Crop</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<?php include '../includes/sidebar-close.php'; ?>
+
+<script>
+    // Form validation
+    document.getElementById('editCropForm').addEventListener('submit', function(e) {
+        const plantingDate = new Date(document.querySelector('input[name="planting_date"]').value);
+        const harvestDate = new Date(document.querySelector('input[name="expected_harvest_date"]').value);
+        
+        if (harvestDate <= plantingDate) {
+            e.preventDefault();
+            alert('Harvest date must be after planting date!');
+            return false;
+        }
+    });
+</script>
